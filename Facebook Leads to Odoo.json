@@ -1,0 +1,155 @@
+{
+  "name": "Facebook Leads to Odoo el m3margy",
+  "nodes": [
+    {
+      "parameters": {
+        "content": "## 🔵 Live Webhook Flow\nليد جديد من الفورم → Code Node → Odoo CRM",
+        "height": 304,
+        "width": 1092,
+        "color": "#0A1F3F"
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        9040,
+        976
+      ],
+      "typeVersion": 1,
+      "id": "55de04f9-dcf3-4fb7-9465-852a84fac663",
+      "name": "Sticky - Live2"
+    },
+    {
+      "parameters": {
+        "page": {
+          "__rl": true,
+          "value": "120427047831989",
+          "mode": "list",
+          "cachedResultName": "LVX",
+          "cachedResultUrl": "https://facebook.com/120427047831989"
+        },
+        "form": {
+          "__rl": true,
+          "value": "24734201116271722",
+          "mode": "list",
+          "cachedResultName": "lvx 1-me3margy"
+        },
+        "options": {
+          "simplifyOutput": true
+        }
+      },
+      "id": "04e972fe-0656-49e9-8f8e-196164d7a1f3",
+      "name": "Facebook Lead Ads Trigger3",
+      "type": "n8n-nodes-base.facebookLeadAdsTrigger",
+      "typeVersion": 1,
+      "position": [
+        9152,
+        1088
+      ],
+      "webhookId": "09e29dd0-7272-4175-b00e-b462e7e6aa7b",
+      "credentials": {
+        "facebookLeadAdsOAuth2Api": {
+          "id": "CnYN7Ct9Z6KTwP1L",
+          "name": "Facebook Lead Ads account LVX"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// ===== LIVE LEADS: Dynamic Mapping for All Campaigns =====\n\nconst formMap = {\n  \"2131862044297939\":  \"home cinema\",\n  \"2747484365591298\":  \"smart kitchen\",\n  \"1954878498407649\":  \"automated chat\",\n  \"2311009299338587\":  \"lvx meeting room\",\n  \"24734201116271722\": \"lvx 1-me3margy\",\n  \"1061737452708002\":  \"lvx 1-hotel\",\n  \"1142853107741031\":  \"lvx 1\",\n  \"486711127779558\":   \"security cam\",\n  \"1253045706115319\":  \"parking system\",\n  \"1016668106364456\":  \"knx course\",\n  \"1216387276066675\":  \"smart doorlock\",\n  \"858762189437779\":   \"vacuum cleaner\",\n  \"769786918561397\":   \"vacuum cleaner edit\",\n  \"1435240593773697\":  \"vacuum cleaner copy\",\n  \"366255539803981\":   \"untitled form\",\n};\n\n// الداتا الجاية من فيسبوك تريجر\nconst lead = $input.first().json;\nconst formId = lead.form_id;\nconst formName = formMap[formId] || \"General Facebook Lead\";\n\nconst result = {\n  fb_lead_id: lead.id,\n  created_at: lead.created_time,\n  form_id:    formId,\n  form_name:  formName,\n};\n\n// فك البيانات (Full Name, Phone, etc)\nif (lead.field_data) {\n  lead.field_data.forEach(field => {\n    if (field.values && field.values.length > 0) {\n      result[field.name] = field.values[0];\n    }\n  });\n}\n\n// تنسيق اسم الفرصة اللي هيظهر في أودو\n// النتيجة هتكون مثلاً: عاصم أحمد - home cinema\nresult.opportunity_name = `${result.full_name || 'New Lead'} - ${formName}`;\n\n// تحديد المسؤول (Salesperson ID)\nresult.assigned_user_id = 725; \n\nreturn { json: result };"
+      },
+      "id": "aa5fcd8f-da1e-4607-97f0-b6c8e0a5ffab",
+      "name": "Code - Live Lead2",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        8800,
+        1088
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "resource": "custom",
+        "customResource": "crm.lead",
+        "fieldsToCreateOrUpdate": {
+          "fields": [
+            {
+              "fieldName": "name",
+              "fieldValue": "={{ $json.data.full_name }}"
+            },
+            {
+              "fieldName": "phone",
+              "fieldValue": "={{ $json.data.phone_number }}"
+            },
+            {
+              "fieldName": "email_from",
+              "fieldValue": "={{ $json.data.email }}"
+            },
+            {
+              "fieldName": "city",
+              "fieldValue": "={{ $json.data.city }}"
+            },
+            {
+              "fieldName": "user_id",
+              "fieldValue": "={{725}}"
+            },
+            {
+              "fieldName": "team_id",
+              "fieldValue": "={{ 10 }}"
+            },
+            {
+              "fieldName": "description",
+              "fieldValue": "={{ $json.data['when_is_the_best_time_to_connect_with_you?'] }}{{ $json.data['what_type_of_apartment_do_you_live_in?'] }}{{ $json.data['where_is_your_home_located?'] }}{{ $json.data['what’s_the_size_of_your_apartment?'] }}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.odoo",
+      "typeVersion": 1,
+      "position": [
+        9616,
+        1088
+      ],
+      "id": "f0916daf-7f54-4a51-a5af-1113108a06fb",
+      "name": "Create Lead - Live2",
+      "credentials": {
+        "odooApi": {
+          "id": "Zb4G4MMWYWjxblp3",
+          "name": "Admin Credititional"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Facebook Lead Ads Trigger3": {
+      "main": [
+        [
+          {
+            "node": "Create Lead - Live2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code - Live Lead2": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": true
+  },
+  "versionId": "acb6ef19-0ddf-4e66-9b2c-62540f0d0b95",
+  "meta": {
+    "aiBuilderAssisted": true,
+    "templateCredsSetupCompleted": true,
+    "instanceId": "f2bc043fe69d31a15311aa2cd21b3ee292a856ab9721a5e17b127c2d9716878a"
+  },
+  "id": "MfbwSRwZ8IxjDzaN",
+  "tags": []
+}
